@@ -85,6 +85,8 @@ if __name__ == "__main__":
     model.eval()
     total_loss = 0
     total_acc = 0
+    total_mean = []
+    total_interval = []
     print("test... {}-way {}-shot {}-query".format(args.way, args.shot, args.query))
     for e in range(1, args.num_epochs+1):
         test_acc = []
@@ -110,5 +112,9 @@ if __name__ == "__main__":
             total_acc = sum(test_acc)/len(test_acc)
 
             printer("test", e, args.num_epochs, i+1, len(test_loader), loss, total_loss, acc, total_acc)
+        print("")
+        # get mean confidence interval and mean
         m, h = mean_confidence_interval(test_acc, confidence=0.95)
-        print(" {:.2f}+-{:.2f}".format(m, h))
+        total_mean.append(m)
+        total_interval.append(h)
+    print("Result: {:.2f}+-{:.2f}".format(sum(total_mean)/len(total_mean), sum(total_interval)/len(total_interval)))

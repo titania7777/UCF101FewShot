@@ -32,20 +32,46 @@ test(r2plus1d18)
 python test.py --frames-path /path/to/frames --load-path /path/to/load --use-best --model r2plus1d --way 5 --shot 1 --query 5
 ```
 
-## Properties and Results
+## Settings and Results
+```device information```  
 GPU: RTX 2080 Ti(11GB)  
+
+```data settings```  
 train class: 71 (9473 videos)  
 test(val) class: 30 (3847 videos)  
-resnet18: 5-way 1-shot 5-query (frame size: 168)  
-r2puls1d18: 5-way 1-shot 5-query (frame size: 112)  
+
+```Common option settings```  
+frame size: 112(r2plus1d), 168(resnet)  
+num epochs: 20(r2plus1d), 40(resnet)  
+train iter size: 100  
+val iter size: 200  
+uniform frame sample: True  
+random start position: True  
+max interval: 7  
+random interval: True  
+sequence length: 35  
+num layer: 1 (for lstm)  
+hidden size: 512 (for lstm)  
+bidirectional: True (for lstm)  
+learning rate: 5e-4 (SGD)  
+scheduler step: 10 (per epochs)  
+scheduler gamma: 0.5  
+way: 5  
+shot: 1  
+query: 5  
+
+```require video memory```  
+resnet: about 7538 MB  
+r2plus1d: about 10042 MB  
+
 
 option | Accuracy
 -- | -- 
-resnet18(transfer learning with few-shot) | 68.97 ±1.22
-resnet18(transfer learning with few-shot + autoaugment) | 68.56 ±1.25
-r2plus1d18(without fine-tuning, use only pretrained weights)  | 92.82 ±0.74
-r2plus1d18(fine-tuning with few-shot)  | 93.86 ±0.69
-r2plus1d18(fine-tuning with few-shot + autoaugment) | 94.26 ±0.66
+resnet18(default) | 68.97 ±1.22
+resnet18(autoaugment) | 68.56 ±1.25
+r2plus1d18(without training)  | 92.82 ±0.74
+r2plus1d18(default)  | 93.66 ±0.70
+r2plus1d18(autoaugment) | 94.16 ±0.68
 
 ## ```UCF101.py``` Options
 ### common options
