@@ -31,6 +31,9 @@ class R2Plus1D(nn.Module):
             nn.AdaptiveAvgPool3d(output_size=(1, 1, 1))
         )
 
+        # scaler
+        self.scaler = nn.Parameter(torch.tensor(5.0))
+
     def forward(self, shot, query):
         x = torch.cat((shot, query), dim=0)
         b, d, c, h, w = x.shape
@@ -50,7 +53,7 @@ class R2Plus1D(nn.Module):
         query = F.normalize(query, dim=-1)
         logits = torch.mm(query, shot.t())
 
-        return logits
+        return logits * self.scaler
 
 class Resnet(nn.Module):
     def __init__(self, way=5, shot=1, query=5, hidden_size=1024, num_layers=1, bidirectional=True):
@@ -59,8 +62,8 @@ class Resnet(nn.Module):
         self.shot = shot
         self.query = query
 
-        # resnet50
-        model = resnet50(pretrained=True)
+        # resnet18(freezing)
+        model = resnet18(pretrained=True)
         self.encoder_freeze = nn.Sequential(
             model.conv1,
             model.bn1,
@@ -72,23 +75,16 @@ class Resnet(nn.Module):
             model.layer4,
             model.avgpool,
         )
-
-        # freezing
         self.encoder_freeze.apply(freeze_all)
 
-        self.first_feature_dim = model.fc.in_features
-        self.last_feature_dim = 512
+        self.last_dim = model.fc.in_features
 
-        # linear 1
-        self.linear1 = nn.Linear(self.first_feature_dim, self.last_feature_dim)
-        self.linear1.apply(initialize_linear)
-        
         # lstm
-        self.lstm = nn.LSTM(self.last_feature_dim, hidden_size, num_layers, batch_first=True, bidirectional=bidirectional)
+        self.lstm = nn.LSTM(self.last_dim, hidden_size, num_layers, batch_first=True, bidirectional=bidirectional)
 
-        # linear 2
-        self.linear2 = nn.Linear(int(hidden_size*2) if bidirectional else hidden_size, hidden_size)
-        self.linear2.apply(initialize_linear)
+        # linear
+        self.linear = nn.Linear(int(hidden_size*2) if bidirectional else hidden_size, hidden_size)
+        self.linear.apply(initialize_linear)
 
         # scaler
         self.scaler = nn.Parameter(torch.tensor(5.0))
@@ -101,15 +97,11 @@ class Resnet(nn.Module):
         x = x.view(b * d, c, h, w)
         x = self.encoder_freeze(x)
 
-        # linear 1
-        x = self.linear1(x)
-
         # lstm
-        x = x.view(b, d, self.last_feature_dim)
-        x = (self.lstm(x)[0]).mean(1)
-
-        # linear 2
-        x = self.linear2(x)
+        x = x.view(b, d, self.last_dim)
+        x = (self.lstm(x)[0]).mean(1) # this may be helful for generalization
+        # linear
+        x = self.linear(x)
         
         shot, query = x[:shot.size(0)], x[shot.size(0):]
 

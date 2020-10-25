@@ -95,8 +95,8 @@ r2plus1d18(autoaugment) | 94.16 ±0.68
 2. iter_size: number of iteration per episodes(total episode = epochs * iter_size)
 3. way: number of way(number of class)
 4. shot: number of shot
-5. query: number of query
-*way, shot, query => we follow episodic training stratiegy[2], 
+5. query: number of query  
+*way, shot, query => we follow episodic training stratiegy[2]
 
 ## references
 -------------
