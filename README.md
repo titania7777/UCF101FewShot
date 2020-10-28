@@ -17,11 +17,11 @@ python splitter.py --frames-path /path/to/frames --labels-path /path/to/labels -
 ```
 train(resnet18)
 ```
-python train.py --frames-path /path/to/frames --save-path /path/to/save --tensorboard-path /path/to/tensorboard --model resnet --random-pad-sample --uniform-frame-sample --random-start-position --random-interval --bidirectional --frame-size 168 --num-epochs 40 --way 5 --shot 1 --query 5
+python train.py --frames-path /path/to/frames --save-path /path/to/save --tensorboard-path /path/to/tensorboard --model resnet --uniform-frame-sample --random-start-position --random-interval --bidirectional --frame-size 168 --way 5 --shot 1 --query 5
 ```
 train(r2plus1d18)
 ```
-python train.py --frames-path /path/to/frames --save-path /path/to/save --tensorboard-path /path/to/tensorboard --model r2plus1d --random-pad-sample --uniform-frame-sample --random-start-position --random-interval --way 5 --shot 1 --query 5
+python train.py --frames-path /path/to/frames --save-path /path/to/save --tensorboard-path /path/to/tensorboard --model r2plus1d --uniform-frame-sample --random-start-position --random-interval --way 5 --shot 1 --query 5
 ```
 test(resnet18)
 ```
@@ -42,20 +42,19 @@ test(val) class: 30 (3847 videos)
 
 ```Common option settings```  
 frame size: 112(r2plus1d), 168(resnet)  
-num epochs: 20(r2plus1d), 40(resnet)  
+num epochs: 30(r2plus1d), 40(resnet)  
 train iter size: 100  
 val iter size: 200  
+random pad sample: False  
+pad option: default  
 uniform frame sample: True  
 random start position: True  
 max interval: 7  
 random interval: True  
 sequence length: 35  
-num layer: 1 (for lstm)  
-hidden size: 512 (for lstm)  
-bidirectional: True (for lstm)  
-learning rate: 5e-4 (SGD)  
-scheduler step: 10 (per epochs)  
-scheduler gamma: 0.5  
+learning rate: 1e-4  
+scheduler step: 10  
+scheduler gamma: 0.9  
 way: 5  
 shot: 1  
 query: 5  
@@ -64,14 +63,11 @@ query: 5
 resnet: about 7538 MB  
 r2plus1d: about 10042 MB  
 
-
 option | Accuracy
 -- | -- 
-resnet18(default) | 68.97 ±1.22
-resnet18(autoaugment) | 68.56 ±1.25
+resnet18 | 69.15 ±1.20
 r2plus1d18(without training)  | 92.82 ±0.74
-r2plus1d18(default)  | 93.66 ±0.70
-r2plus1d18(autoaugment) | 94.16 ±0.68
+r2plus1d18  | 94.29 ±0.67
 
 ## ```UCF101.py``` Options
 ### common options

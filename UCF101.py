@@ -17,7 +17,7 @@ class UCF101(Dataset):
 
         # pad option => using for _add_pads function
         self.random_pad_sample = random_pad_sample
-        assert pad_option in ['default', 'autoaugment'], "The pad option '{}' is not valid, you can try 'default' or 'autoaugment' pad option"
+        assert pad_option in ['default', 'autoaugment'], "'{}' is not valid pad option.".format(pad_option)
         self.pad_option = pad_option
 
         # frame sampler option => using for _frame_sampler function
@@ -27,7 +27,7 @@ class UCF101(Dataset):
         self.random_interval = random_interval
 
         # read a csv file that already separated by splitter.py
-        assert setname in ['train', 'test'], "'{}' setname is invalid".format(setname)
+        assert setname in ['train', 'test'], "'{}' is not valid setname.".format(setname)
         if setname == 'train':
             csv = open(os.path.join(labels_path, 'train.csv'))
         if setname == 'test':
@@ -58,7 +58,8 @@ class UCF101(Dataset):
         # transformer in training phase
         if setname == 'train':
             self.transform = transforms.Compose([
-                transforms.Resize((frame_size, frame_size)),
+                transforms.Resize((frame_size + 16, frame_size + 48)),
+                transforms.CenterCrop((frame_size, frame_size)),
                 transforms.ToTensor(),
                 transforms.ColorJitter(
                     brightness=0.4, contrast=0.4, saturation=0.4
@@ -80,7 +81,8 @@ class UCF101(Dataset):
         
         # autoaugment transformer for insufficient frames in training phase
         self.transform_autoaugment = transforms.Compose([
-            transforms.Resize((frame_size, frame_size)),
+            transforms.Resize((frame_size + 16, frame_size + 48)),
+            transforms.CenterCrop((frame_size, frame_size)),
             ImageNetPolicy(),
             transforms.ToTensor(),
             normalize,
@@ -134,6 +136,8 @@ class UCF101(Dataset):
             sequence = range(start_position, sorted_frames_length, interval)[:self.sequence_length]
         else:
             sequence = sorted(np.random.permutation(np.arange(sorted_frames_length))[:self.sequence_length])
+        
+        # transform to Tensor
         datas = [self.transform(Image.open(sorted_frames_path[s])) for s in sequence]
         
         return datas

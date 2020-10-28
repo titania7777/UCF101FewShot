@@ -17,7 +17,7 @@ if __name__ == "__main__":
     parser.add_argument("--save-path", type=str, default="./save/train1/")
     parser.add_argument("--tensorboard-path", type=str, default="./tensorboard/train1")
     parser.add_argument("--frame-size", type=int, default=112)
-    parser.add_argument("--num-epochs", type=int, default=20)
+    parser.add_argument("--num-epochs", type=int, default=30)
     parser.add_argument("--train-iter-size", type=int, default=100)
     parser.add_argument("--val-iter-size", type=int, default=200)
     # ===========================UCF101.py options==================================
@@ -35,9 +35,9 @@ if __name__ == "__main__":
     parser.add_argument("--num-layers", type=int, default=1)
     parser.add_argument("--hidden-size", type=int, default=512)
     parser.add_argument("--bidirectional", action="store_true")
-    parser.add_argument("--learning-rate", type=float, default=5e-4)
+    parser.add_argument("--learning-rate", type=float, default=1e-4)
     parser.add_argument("--scheduler-step-size", type=int, default=10)
-    parser.add_argument("--scheduler-gamma", type=float, default=0.5)
+    parser.add_argument("--scheduler-gamma", type=float, default=0.9)
     parser.add_argument("--way", type=int, default=5)
     parser.add_argument("--shot", type=int, default=1)
     parser.add_argument("--query", type=int, default=5)
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     args_print_save(args)
 
     # this script supports only resnet18 and r2plus1d18
-    assert args.model in ["resnet", "r2plus1d"], "'{}' model is invalid".format(args.model)
+    assert args.model in ["resnet", "r2plus1d"], "'{}' is not valid model.".format(args.model)
 
     train_dataset = UCF101(
         model=args.model,

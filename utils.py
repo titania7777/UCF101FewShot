@@ -22,7 +22,7 @@ def printer(status, epoch, num_epochs, batch, num_batchs, loss, loss_mean, acc, 
 def path_check(path):
     if os.path.exists(path):
         while True:
-            print("'{}' this path is already exist, do you want continue after remove ? [y/n]".format(path))
+            print("'{}' path is already exist, do you want continue after remove ? [y/n]".format(path))
             response = input()
             if response == 'y' or response == 'n':
                 break
