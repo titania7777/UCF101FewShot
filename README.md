@@ -9,7 +9,7 @@ sample code for few-shot action recognition on UCF101
 *   tensorboard>=2.3.0
 
 ## Usage
-download and extract frame from UCF101 videos. [UCF101 Frame Extractor](https://github.com/titania7777/UCF101FrameExtrcator)
+download and extract frame from UCF101 videos. [UCF101 Frame Extractor](https://github.com/titania7777/UCF101Frameextractor)
 
 split dataset for few-shot learning(if you already has csv files then you can skip this step)
 ```
