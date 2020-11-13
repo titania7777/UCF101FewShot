@@ -58,7 +58,7 @@ class UCF101(Dataset):
         # transformer in training phase
         if setname == 'train':
             self.transform = transforms.Compose([
-                transforms.Resize((frame_size + 16, frame_size + 48)),
+                transforms.Resize((frame_size + 16, frame_size + 59)),
                 transforms.CenterCrop((frame_size, frame_size)),
                 transforms.ToTensor(),
                 transforms.ColorJitter(
@@ -81,7 +81,7 @@ class UCF101(Dataset):
         
         # autoaugment transformer for insufficient frames in training phase
         self.transform_autoaugment = transforms.Compose([
-            transforms.Resize((frame_size + 16, frame_size + 48)),
+            transforms.Resize((frame_size + 16, frame_size + 59)),
             transforms.CenterCrop((frame_size, frame_size)),
             ImageNetPolicy(),
             transforms.ToTensor(),

@@ -17,11 +17,11 @@ python splitter.py --frames-path /path/to/frames --labels-path /path/to/labels -
 ```
 train(resnet18)
 ```
-python train.py --frames-path /path/to/frames --save-path /path/to/save --tensorboard-path /path/to/tensorboard --model resnet --uniform-frame-sample --random-start-position --random-interval --bidirectional --frame-size 168 --way 5 --shot 1 --query 5
+python train.py --frames-path /path/to/frames --save-path /path/to/save --tensorboard-path /path/to/tensorboard --model resnet --uniform-frame-sample --bidirectional --frame-size 168 --way 5 --shot 1 --query 5
 ```
 train(r2plus1d18)
 ```
-python train.py --frames-path /path/to/frames --save-path /path/to/save --tensorboard-path /path/to/tensorboard --model r2plus1d --uniform-frame-sample --random-start-position --random-interval --way 5 --shot 1 --query 5
+python train.py --frames-path /path/to/frames --save-path /path/to/save --tensorboard-path /path/to/tensorboard --model r2plus1d --uniform-frame-sample --way 5 --shot 1 --query 5
 ```
 test(resnet18)
 ```
@@ -45,12 +45,13 @@ frame size: 112(r2plus1d), 168(resnet)
 num epochs: 30(r2plus1d), 40(resnet)  
 train iter size: 100  
 val iter size: 200  
+metric: cosine  
 random pad sample: False  
 pad option: default  
 uniform frame sample: True  
-random start position: True  
+random start position: False  
 max interval: 7  
-random interval: True  
+random interval: False  
 sequence length: 35  
 learning rate: 1e-4  
 scheduler step: 10  

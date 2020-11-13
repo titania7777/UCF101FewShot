@@ -17,6 +17,8 @@ if __name__ == "__main__":
     parser.add_argument("--use-best", action="store_true")
     parser.add_argument("--frame-size", type=int, default=112)
     parser.add_argument("--num-epochs", type=int, default=10)
+    parser.add_argument("--test-iter-size", type=int, default=600)
+    parser.add_argument("--metric", type=str, default="cosine")
     parser.add_argument("--sequence-length", type=int, default=35)
     parser.add_argument("--num-layers", type=int, default=1)
     parser.add_argument("--hidden-size", type=int, default=512)
@@ -27,8 +29,9 @@ if __name__ == "__main__":
     parser.add_argument("--query", type=int, default=5)
     args = parser.parse_args()
 
-    # model check
-    assert args.model in ['resnet', 'r2plus1d'], "'{}' model is invalid".format(setname)
+    # check options
+    assert args.model in ["resnet", "r2plus1d"], "'{}' model is invalid".format(setname)
+    assert args.metric in ["cosine", "euclidean", "relation"], "'{}' metric is invalid.".format(args.metric)
     
     if args.use_best:
         load_path = os.path.join(args.load_path, "best.pth")
@@ -37,7 +40,6 @@ if __name__ == "__main__":
     
     # load_path check
     assert os.path.exists(load_path), "'{}' file is not exists !!".format(load_path)
-
 
     test_dataset = UCF101(
         model=args.model,
@@ -56,7 +58,8 @@ if __name__ == "__main__":
         random_interval=False,
     )
     print("[test] number of videos / classes: {} / {}".format(len(test_dataset), test_dataset.num_classes))
-    test_sampler = CategoriesSampler(test_dataset.classes, 400, args.way, args.shot, args.query)
+    print("total testing episodes: {}".format(args.num_epochs * args.test_iter_size))
+    test_sampler = CategoriesSampler(test_dataset.classes, args.test_iter_size, args.way, args.shot, args.query)
     
     # in windows has some issue when try to use DataLoader in pytorch, i don't know why..
     test_loader = DataLoader(dataset=test_dataset, batch_sampler=test_sampler, num_workers=0 if os.name == 'nt' else 4, pin_memory=True)
@@ -69,6 +72,7 @@ if __name__ == "__main__":
             num_layers=args.num_layers,
             hidden_size=args.hidden_size,
             bidirectional=args.bidirectional,
+            metric=args.metric,
         )
 
     if args.model == 'r2plus1d':
@@ -76,6 +80,7 @@ if __name__ == "__main__":
             way=args.way,
             shot=args.shot,
             query=args.query,
+            metric=args.metric,
         )
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -84,9 +89,8 @@ if __name__ == "__main__":
     
     model.eval()
     total_loss = 0
-    total_acc = 0
-    total_mean = []
-    total_interval = []
+    epoch_acc = 0
+    total_acc = []
     print("test... {}-way {}-shot {}-query".format(args.way, args.shot, args.query))
     for e in range(1, args.num_epochs+1):
         test_acc = []
@@ -109,12 +113,14 @@ if __name__ == "__main__":
             # calculate accuracy
             acc = 100 * (pred.argmax(1) == labels).type(torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor).mean().item()
             test_acc.append(acc)
-            total_acc = sum(test_acc)/len(test_acc)
+            total_acc.append(acc)
+            epoch_acc = sum(test_acc)/len(test_acc)
 
-            printer("test", e, args.num_epochs, i+1, len(test_loader), loss, total_loss, acc, total_acc)
-        print("")
-        # get mean confidence interval and mean
+            printer("test", e, args.num_epochs, i+1, len(test_loader), loss, total_loss, acc, epoch_acc)
+        # get mean confidence interval per epochs
         m, h = mean_confidence_interval(test_acc, confidence=0.95)
-        total_mean.append(m)
-        total_interval.append(h)
-    print("Result: {:.2f}+-{:.2f}".format(sum(total_mean)/len(total_mean), sum(total_interval)/len(total_interval)))
+        print(" => {} episodes [{:.2f} +-{:.2f}]".format(args.test_iter_size, m, h))
+
+    # get total mean confidence interval
+    m, h = mean_confidence_interval(total_acc, confidence=0.95)
+    print("total {} episodes Result: {:.2f}+-{:.2f}".format(args.num_epochs * args.test_iter_size, m, h))

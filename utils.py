@@ -6,7 +6,7 @@ import numpy as np
 import torch.nn as nn
 
 def printer(status, epoch, num_epochs, batch, num_batchs, loss, loss_mean, acc, acc_mean):
-    sys.stdout.write("\r[{}]-[Epoch {}/{}] [Batch {}/{}] [Loss: {:.2f} (mean: {:.2f}), Acc: {:.2f}% (mean: {:.2f}%)]".format(
+    sys.stdout.write("\r[{}]-[Epoch {}/{}] [Batch {}/{}] [Loss: {:.4f} (mean: {:.4f}), Acc: {:.2f}% (mean: {:.2f}%)] ".format(
             status,
             epoch,
             num_epochs,
@@ -76,3 +76,13 @@ def initialize_linear(model):
     if type(model) == nn.Linear:
         nn.init.xavier_uniform_(model.weight)
         model.bias.data.fill_(0.01)
+
+def initialize_3d(model):
+    if type(model) == nn.Conv3d:
+        nn.init.xavier_uniform_(model.weight)
+        if model.bias != None:
+            model.bias.data.fill_(0.01)
+
+    if type(model) == nn.BatchNorm3d:
+        nn.init.constant_(model.weight, 1)
+        nn.init.constant_(model.bias, 0)

@@ -20,6 +20,7 @@ if __name__ == "__main__":
     parser.add_argument("--num-epochs", type=int, default=30)
     parser.add_argument("--train-iter-size", type=int, default=100)
     parser.add_argument("--val-iter-size", type=int, default=200)
+    parser.add_argument("--metric", type=str, default="cosine")
     # ===========================UCF101.py options==================================
     # pad options
     parser.add_argument("--random-pad-sample", action="store_true")
@@ -43,6 +44,10 @@ if __name__ == "__main__":
     parser.add_argument("--query", type=int, default=5)
     args = parser.parse_args()
 
+    # check options
+    assert args.model in ["resnet", "r2plus1d"], "'{}' model is invalid.".format(args.model)
+    assert args.metric in ["cosine", "euclidean", "relation"], "'{}' metric is invalid.".format(args.metric)
+
     # path to save
     path_check(args.save_path)
     
@@ -51,9 +56,6 @@ if __name__ == "__main__":
     
     # print args and save it in the save_path
     args_print_save(args)
-
-    # this script supports only resnet18 and r2plus1d18
-    assert args.model in ["resnet", "r2plus1d"], "'{}' is not valid model.".format(args.model)
 
     train_dataset = UCF101(
         model=args.model,
@@ -107,6 +109,7 @@ if __name__ == "__main__":
             num_layers=args.num_layers,
             hidden_size=args.hidden_size,
             bidirectional=args.bidirectional,
+            metric=args.metric,
         )
 
     if args.model == "r2plus1d":
@@ -114,6 +117,7 @@ if __name__ == "__main__":
             way=args.way,
             shot=args.shot,
             query=args.query,
+            metric=args.metric,
         )
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -140,12 +144,13 @@ if __name__ == "__main__":
             
             shot, query = datas[:pivot], datas[pivot:]
             labels = torch.arange(args.way).repeat(args.query).to(device)
-            # one_hot_labels = Variable(torch.zeros(args.way*args.query, args.way).scatter_(1, labels.view(-1, 1), 1)).to(device)
-
             pred = model(shot, query)
 
             # calculate loss
+            # onehot_labels = Variable(torch.zeros(args.way*args.query, args.way).scatter_(1, torch.arange(args.way).repeat(args.query).view(-1, 1), 1)).to(device)
             loss = F.cross_entropy(pred, labels)
+            # loss = F.mse_loss(pred, onehot_labels)
+
             train_loss.append(loss.item())
             total_loss = sum(train_loss)/len(train_loss)
 
@@ -177,12 +182,13 @@ if __name__ == "__main__":
             
             shot, query = datas[:pivot], datas[pivot:]
             labels = torch.arange(args.way).repeat(args.query).to(device)
-            # one_hot_labels = Variable(torch.zeros(args.way*args.query, args.way).scatter_(1, labels.view(-1, 1), 1)).to(device)
-
             pred = model(shot, query)
 
             # calculate loss
+            # onehot_labels = Variable(torch.zeros(args.way*args.query, args.way).scatter_(1, torch.arange(args.way).repeat(args.query).view(-1, 1), 1)).to(device)
             loss = F.cross_entropy(pred, labels).item()
+            # loss = F.mse_loss(pred, onehot_labels).item()
+
             val_loss.append(loss)
             total_loss = sum(val_loss)/len(val_loss)
 
@@ -203,6 +209,6 @@ if __name__ == "__main__":
             best = total_acc
             torch.save(model.state_dict(), os.path.join(args.save_path, "best.pth"))
         torch.save(model.state_dict(), os.path.join(args.save_path, "last.pth"))
-        print(" Best: {:.2f}%".format(best * 100))
+        print("Best: {:.2f}%".format(best * 100))
 
         lr_scheduler.step()
