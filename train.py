@@ -109,7 +109,6 @@ if __name__ == "__main__":
             num_layers=args.num_layers,
             hidden_size=args.hidden_size,
             bidirectional=args.bidirectional,
-            metric=args.metric,
         )
 
     if args.model == "r2plus1d":

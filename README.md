@@ -17,19 +17,19 @@ python splitter.py --frames-path /path/to/frames --labels-path /path/to/labels -
 ```
 train(resnet18)
 ```
-python train.py --frames-path /path/to/frames --save-path /path/to/save --tensorboard-path /path/to/tensorboard --model resnet --uniform-frame-sample --bidirectional --frame-size 168 --way 5 --shot 1 --query 5
+python train.py --frames-path /path/to/frames --save-path /path/to/save --tensorboard-path /path/to/tensorboard --model resnet --uniform-frame-sample --frame-size 168 --way 5 --shot 1 --query 5
 ```
 train(r2plus1d18)
 ```
-python train.py --frames-path /path/to/frames --save-path /path/to/save --tensorboard-path /path/to/tensorboard --model r2plus1d --uniform-frame-sample --way 5 --shot 1 --query 5
+python train.py --frames-path /path/to/frames --save-path /path/to/save --tensorboard-path /path/to/tensorboard --model r2plus1d --uniform-frame-sample --metric cosine --way 5 --shot 1 --query 5
 ```
 test(resnet18)
 ```
-python test.py --frames-path /path/to/frames --load-path /path/to/load --use-best --model resnet --bidirectional --frame-size 168 --way 5 --shot 1 --query 5
+python test.py --frames-path /path/to/frames --load-path /path/to/load --use-best --model resnet --frame-size 168 --way 5 --shot 1 --query 5
 ```
 test(r2plus1d18)
 ```
-python test.py --frames-path /path/to/frames --load-path /path/to/load --use-best --model r2plus1d --way 5 --shot 1 --query 5
+python test.py --frames-path /path/to/frames --load-path /path/to/load --use-best --model r2plus1d --metric cosine --way 5 --shot 1 --query 5
 ```
 
 ## Settings and Results
@@ -42,7 +42,7 @@ test(val) class: 30 (3847 videos)
 
 ```Common option settings```  
 frame size: 112(r2plus1d), 168(resnet)  
-num epochs: 30(r2plus1d), 40(resnet)  
+num epochs: 30 
 train iter size: 100  
 val iter size: 200  
 metric: cosine  
@@ -53,7 +53,7 @@ random start position: False
 max interval: 7  
 random interval: False  
 sequence length: 35  
-learning rate: 1e-4  
+learning rate: 1e-4(r2plus1d), 5e-4(resnet)  
 scheduler step: 10  
 scheduler gamma: 0.9  
 way: 5  

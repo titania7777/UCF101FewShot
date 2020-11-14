@@ -7,8 +7,6 @@ from torchvision.models.video.resnet import BasicBlock, Conv2Plus1D
 from utils import freeze_all, freeze_layer, freeze_bn, initialize_linear, initialize_3d
 # torch.backends.cudnn.enabled = False
 
-
-
 class R2Plus1D(nn.Module):
     def __init__(self, way=5, shot=1, query=5, metric="cosine"):
         super(R2Plus1D, self).__init__()
@@ -47,6 +45,7 @@ class R2Plus1D(nn.Module):
                 nn.Linear(256, 128),
                 nn.Softplus(),
                 nn.Linear(128, 1),
+                # torch.sigmoid(),
             )
             self.relation2.apply(initialize_linear)
 
@@ -112,12 +111,11 @@ class R2Plus1D(nn.Module):
         return logits * self.scaler
 
 class Resnet(nn.Module):
-    def __init__(self, way=5, shot=1, query=5, hidden_size=1024, num_layers=1, bidirectional=True, metric="cosine"):
+    def __init__(self, way=5, shot=1, query=5, hidden_size=512, num_layers=1, bidirectional=True):
         super(Resnet, self).__init__()
         self.way = way
         self.shot = shot
         self.query = query
-        self.metric = metric
 
         # resnet18(freezing)
         model = resnet18(pretrained=True)
@@ -137,8 +135,7 @@ class Resnet(nn.Module):
         self.last_dim = model.fc.in_features
 
         # gru
-        self.gru = nn.GRU(input_size=self.last_dim, hidden_size=hidden_size, batch_first=Truem, dropout=0.5 if num_layers > 1 else 0, bidirectional=bidirectional)
-        # self.gru = nn.GRU(self.last_dim, hidden_size, num_layers, batch_first=True, bidirectional=bidirectional)
+        self.gru = nn.GRU(input_size=self.last_dim, hidden_size=hidden_size, batch_first=True, num_layers=num_layers, dropout=0.5 if num_layers > 1 else 0, bidirectional=bidirectional)
 
         # linear
         self.linear = nn.Linear(int(hidden_size*2) if bidirectional else hidden_size, hidden_size)
@@ -155,9 +152,10 @@ class Resnet(nn.Module):
         x = x.view(b * d, c, h, w)
         x = self.encoder_freeze(x)
 
-        # lstm
+        # gru
         x = x.view(b, d, self.last_dim)
-        x = (self.lstm(x)[0]).mean(1) # this may be helful for generalization
+        x = (self.gru(x)[0]).mean(1) # this may be helful for generalization
+        
         # linear
         x = self.linear(x)
         
