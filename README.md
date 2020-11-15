@@ -1,7 +1,7 @@
 # UCF101 Few-shot Action Recognition(metric-based)
 sample code for few-shot action recognition on UCF101
 
-```UCF101.py``` sampler supports autoaugment[1] when scarcity of frames in video(optional).
+**UCF101.py** sampler supports autoaugment[1] when scarcity of frames in video(optional).
 
 ## Requirements
 *   torch>=1.6.0
@@ -15,32 +15,28 @@ split dataset for few-shot learning(if you already has csv files then you can sk
 ```
 python splitter.py --frames-path /path/to/frames --labels-path /path/to/labels --save-path /path/to/save
 ```
-train(resnet18)
+**train(resnet18)**
 ```
-python train.py --frames-path /path/to/frames --save-path /path/to/save --tensorboard-path /path/to/tensorboard --model resnet --uniform-frame-sample --frame-size 168 --way 5 --shot 1 --query 5
+python train.py --frames-path /path/to/frames --save-path /path/to/save --tensorboard-path /path/to/tensorboard --model resnet --uniform-frame-sample --learning-rate 5e-4 --frame-size 168 --way 5 --shot 1 --query 5
 ```
-train(r2plus1d18)
+**train(r2plus1d18)**
 ```
 python train.py --frames-path /path/to/frames --save-path /path/to/save --tensorboard-path /path/to/tensorboard --model r2plus1d --uniform-frame-sample --metric cosine --way 5 --shot 1 --query 5
 ```
-test(resnet18)
+**test(resnet18)**
 ```
 python test.py --frames-path /path/to/frames --load-path /path/to/load --use-best --model resnet --frame-size 168 --way 5 --shot 1 --query 5
 ```
-test(r2plus1d18)
+**test(r2plus1d18)**
 ```
 python test.py --frames-path /path/to/frames --load-path /path/to/load --use-best --model r2plus1d --metric cosine --way 5 --shot 1 --query 5
 ```
 
 ## Settings and Results
-```device information```  
-GPU: RTX 2080 Ti(11GB)  
+**device information**: GPU: RTX 2080 Ti(11GB)  
+**data settings**: train class: 71 (9473 videos), test(val) class: 30 (3847 videos)  
 
-```data settings```  
-train class: 71 (9473 videos)  
-test(val) class: 30 (3847 videos)  
-
-```Common option settings```  
+**option settings**  
 frame size: 112(r2plus1d), 168(resnet)  
 num epochs: 30 
 train iter size: 100  
@@ -53,21 +49,19 @@ random start position: False
 max interval: 7  
 random interval: False  
 sequence length: 35  
+num_layers:1 (resnet)  
+hidden_size: 512 (resnet)  
 learning rate: 1e-4(r2plus1d), 5e-4(resnet)  
 scheduler step: 10  
 scheduler gamma: 0.9  
 way: 5  
 shot: 1  
 query: 5  
-
-```require video memory```  
-resnet: about 7538 MB  
-r2plus1d: about 10042 MB  
-
-option | Accuracy
+**require video memory**: resnet: about 7538 MB, r2plus1d: about 10042 MB  
+**all accuracy results are averaged over 6000 test episodes with 95% confidence intervals**
+model | Accuracy
 -- | -- 
-resnet18 | 69.15 ±1.20
-r2plus1d18(without training)  | 92.82 ±0.74
+resnet18 | 70.08 ±0.32
 r2plus1d18  | 94.29 ±0.67
 
 ## ```UCF101.py``` Options
@@ -79,8 +73,8 @@ r2plus1d18  | 94.29 ±0.67
 5. sequence_length: number of frames
 6. setname: sampling mode, if this mode is 'train' then the sampler read a 'train.csv' file to load train dataset [default: 'train', others: 'test']
 ### pad options
-7. random_pad_sample: sampling frames from existing frames with randomly when frames are insufficient, if this value is False then only use first frame repeatedly [default: True, other: False]
-8. pad_option: when adds some pad for insufficient frames of video, if this value is 'autoaugment' then pads will augmented by autoaugment policies [default: 'default', other: 'autoaugment']
+7. random_pad_sample: sampling frames from current frames with randomly for making some pads when frames are insufficient, if this value is False then only use first frame repeatedly [default: True, other: False]
+8. pad_option: if this value is 'autoaugment' then pads will augmented by autoaugment policies [default: 'default', other: 'autoaugment']
 ### frame sampler options
 9. uniform_frame_sample: sampling frames with same interval, if this value is False then sampling frames with ignored interval [default: True, other: False]
 10. random_start_position: decides the starting point with randomly by considering the interval, if this value is False then starting point is always 0 [default: True, other, False]
@@ -88,7 +82,7 @@ r2plus1d18  | 94.29 ±0.67
 12. random_interval: decides the interval value with randomly, if this value is False then use a maximum interval [default: True, other: False]
 
 ## CategoriesSampler Options in ```UCF101.py```
-1. labels: this parameter receive of classes in csv files, so this value must be ```UCF101.classes```
+1. labels: this parameter only receive classes in csv files, so this value must be **UCF101.classes**
 2. iter_size: number of iteration per episodes(total episode = epochs * iter_size)
 3. way: number of way(number of class)
 4. shot: number of shot
