@@ -175,39 +175,40 @@ if __name__ == "__main__":
         val_acc = []
         val_loss = []
         model.eval()
-        for i, (datas, _) in enumerate(val_loader):
-            datas = datas.to(device)
-            pivot = args.way * args.shot
-            
-            shot, query = datas[:pivot], datas[pivot:]
-            labels = torch.arange(args.way).repeat(args.query).to(device)
-            pred = model(shot, query)
+        with torch.no_grad():
+            for i, (datas, _) in enumerate(val_loader):
+                datas = datas.to(device)
+                pivot = args.way * args.shot
+                
+                shot, query = datas[:pivot], datas[pivot:]
+                labels = torch.arange(args.way).repeat(args.query).to(device)
+                pred = model(shot, query)
 
-            # calculate loss
-            # onehot_labels = Variable(torch.zeros(args.way*args.query, args.way).scatter_(1, torch.arange(args.way).repeat(args.query).view(-1, 1), 1)).to(device)
-            loss = F.cross_entropy(pred, labels).item()
-            # loss = F.mse_loss(pred, onehot_labels).item()
+                # calculate loss
+                # onehot_labels = Variable(torch.zeros(args.way*args.query, args.way).scatter_(1, torch.arange(args.way).repeat(args.query).view(-1, 1), 1)).to(device)
+                loss = F.cross_entropy(pred, labels).item()
+                # loss = F.mse_loss(pred, onehot_labels).item()
 
-            val_loss.append(loss)
-            total_loss = sum(val_loss)/len(val_loss)
+                val_loss.append(loss)
+                total_loss = sum(val_loss)/len(val_loss)
 
-            # calculate accuracy
-            acc = (pred.argmax(1) == labels).type(torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor).mean().item()
-            val_acc.append(acc)
-            total_acc = sum(val_acc)/len(val_acc)
+                # calculate accuracy
+                acc = (pred.argmax(1) == labels).type(torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor).mean().item()
+                val_acc.append(acc)
+                total_acc = sum(val_acc)/len(val_acc)
 
-            # print result
-            printer("val", e, args.num_epochs, i+1, len(val_loader), loss, total_loss, acc * 100, total_acc * 100)
+                # print result
+                printer("val", e, args.num_epochs, i+1, len(val_loader), loss, total_loss, acc * 100, total_acc * 100)
 
-            # tensorboard
-            writer.add_scalar("Loss/val", loss, n_iter_val)
-            writer.add_scalar("Accuracy/val", acc, n_iter_val)
-            n_iter_val += 1
+                # tensorboard
+                writer.add_scalar("Loss/val", loss, n_iter_val)
+                writer.add_scalar("Accuracy/val", acc, n_iter_val)
+                n_iter_val += 1
 
-        if total_acc > best:
-            best = total_acc
-            torch.save(model.state_dict(), os.path.join(args.save_path, "best.pth"))
-        torch.save(model.state_dict(), os.path.join(args.save_path, "last.pth"))
-        print("Best: {:.2f}%".format(best * 100))
+            if total_acc > best:
+                best = total_acc
+                torch.save(model.state_dict(), os.path.join(args.save_path, "best.pth"))
+            torch.save(model.state_dict(), os.path.join(args.save_path, "last.pth"))
+            print("Best: {:.2f}%".format(best * 100))
 
         lr_scheduler.step()

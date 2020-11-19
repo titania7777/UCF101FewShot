@@ -91,35 +91,36 @@ if __name__ == "__main__":
     epoch_acc = 0
     total_acc = []
     print("test... {}-way {}-shot {}-query".format(args.way, args.shot, args.query))
-    for e in range(1, args.num_epochs+1):
-        test_acc = []
-        test_loss = []
-        for i, (datas, _) in enumerate(test_loader):
-            datas = datas.to(device)
-            pivot = args.way * args.shot
-            
-            shot, query = datas[:pivot], datas[pivot:]
-            labels = torch.arange(args.way).repeat(args.query).to(device)
-            # one_hot_labels = Variable(torch.zeros(args.way*args.query, args.way).scatter_(1, labels.view(-1, 1), 1)).to(device)
+    with torch.no_grad():
+        for e in range(1, args.num_epochs+1):
+            test_acc = []
+            test_loss = []
+            for i, (datas, _) in enumerate(test_loader):
+                datas = datas.to(device)
+                pivot = args.way * args.shot
+                
+                shot, query = datas[:pivot], datas[pivot:]
+                labels = torch.arange(args.way).repeat(args.query).to(device)
+                # one_hot_labels = Variable(torch.zeros(args.way*args.query, args.way).scatter_(1, labels.view(-1, 1), 1)).to(device)
 
-            pred = model(shot, query)
+                pred = model(shot, query)
 
-            # calculate loss
-            loss = F.cross_entropy(pred, labels).item()
-            test_loss.append(loss)
-            total_loss = sum(test_loss)/len(test_loss)
+                # calculate loss
+                loss = F.cross_entropy(pred, labels).item()
+                test_loss.append(loss)
+                total_loss = sum(test_loss)/len(test_loss)
 
-            # calculate accuracy
-            acc = 100 * (pred.argmax(1) == labels).type(torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor).mean().item()
-            test_acc.append(acc)
-            total_acc.append(acc)
-            epoch_acc = sum(test_acc)/len(test_acc)
+                # calculate accuracy
+                acc = 100 * (pred.argmax(1) == labels).type(torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor).mean().item()
+                test_acc.append(acc)
+                total_acc.append(acc)
+                epoch_acc = sum(test_acc)/len(test_acc)
 
-            printer("test", e, args.num_epochs, i+1, len(test_loader), loss, total_loss, acc, epoch_acc)
-        # get mean confidence interval per epochs
-        m, h = mean_confidence_interval(test_acc, confidence=0.95)
-        print(" => {} episodes [{:.2f} +-{:.2f}]".format(args.test_iter_size, m, h))
+                printer("test", e, args.num_epochs, i+1, len(test_loader), loss, total_loss, acc, epoch_acc)
+            # get mean confidence interval per epochs
+            m, h = mean_confidence_interval(test_acc, confidence=0.95)
+            print(" => {} episodes [{:.2f} +-{:.2f}]".format(args.test_iter_size, m, h))
 
-    # get total mean confidence interval
-    m, h = mean_confidence_interval(total_acc, confidence=0.95)
-    print("total {} episodes Result: {:.2f}+-{:.2f}".format(args.num_epochs * args.test_iter_size, m, h))
+        # get total mean confidence interval
+        m, h = mean_confidence_interval(total_acc, confidence=0.95)
+        print("total {} episodes Result: {:.2f}+-{:.2f}".format(args.num_epochs * args.test_iter_size, m, h))
