@@ -117,29 +117,36 @@ class UCF101(Dataset):
         # get sorted frames length to list
         sorted_frames_length = len(sorted_frames_path)
 
-        # set interval for uniform sampling of frames
-        interval = sorted_frames_length // self.sequence_length
-        interval = 1 if interval == 0 else interval
-        interval = self.max_interval if interval >= self.max_interval else interval
-        if self.random_interval:
-            # set interval randomly
-            interval = np.random.permutation(np.arange(start=1, stop=interval + 1))[0]
-
-        # set start position for uniform sampling of frames
-        if self.random_start_position:
-            start_position = np.random.randint(0, sorted_frames_length - (interval * self.sequence_length) + 1)
-        else:
-            start_position = 0
-
-        # sampling frames
+        # set a sampling strategy
         if self.uniform_frame_sample:
-            sequence = range(start_position, sorted_frames_length, interval)[:self.sequence_length]
+            # set a default interval
+            interval = (sorted_frames_length // self.sequence_length) - 1
+            if self.max_interval != -1 and interval > self.max_interval:
+                interval = self.max_interval
+
+            # set a interval with randomly
+            if self.random_interval:
+                interval = np.random.permutation(np.arange(start=0, stop=interval + 1))[0]
+    
+            # get a require frames
+            require_frames = ((interval + 1) * self.sequence_length - interval)
+            
+            # get a range of start position
+            range_of_start_position = sorted_frames_length - require_frames
+
+            # set a start position
+            if self.random_start_position:
+                start_position = np.random.randint(0, range_of_start_position + 1)
+            else:
+                start_position = 0
+            
+            sequence = list(range(start_position, require_frames + start_position, interval + 1))
         else:
             sequence = sorted(np.random.permutation(np.arange(sorted_frames_length))[:self.sequence_length])
-        
+            
         # transform to Tensor
         datas = [self.transform(Image.open(sorted_frames_path[s])) for s in sequence]
-        
+
         return datas
     
     def __getitem__(self, index):
